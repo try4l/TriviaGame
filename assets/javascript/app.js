@@ -1,60 +1,56 @@
- // button for test - make invisible for production code
+ // buttons for test - make them invisible for production code
  $(document).ready(function() {
-
     $("#button1").click(game.runTimer.bind(game));
-    // $("button").on("click", function() {
-    //   game.runTimer(); 
-    // });
-
     $("#button2").click(game.stopTimer.bind(game)); 
-
     $("#button3").click(game.reset.bind(game));
-    // $("button").on("click", function() {
-    //   game.reset(); 
-    // });
-
  });
 
  var questionArray = [
     {
       question: "Who is the goose?", 
       answers: [ 
-        { answer1: "the first answer", isCorrect: false },
-        { answer2: "the second answer", isCorrect: true },
-        { answer3: "the third answer", isCorrect: false },
-        { answer4: "the fourth answer", isCorrect: false },
+        { answer: "the first answer", isCorrect: false },
+        { answer: "the second answer", isCorrect: true },
+        { answer: "the third answer", isCorrect: false },
+        { answer: "the fourth answer", isCorrect: false },
       ],          // answers array
     },            // question object
     {
       question: "What the hell??", 
       answers: [ 
-        { answer1: "the 1st answer", isCorrect: false },
-        { answer2: "the 2nd answer", isCorrect: true },
+        { answer: "the 1st answer", isCorrect: false },
+        { answer: "the 2nd answer", isCorrect: true },
       ],          // answers array
     },            // question object
 {
       question: "WTF???", 
       answers: [ 
-        { answer1: "the real answer", isCorrect: true },
-        { answer2: "the unreal answer", isCorrect: false },
+        { answer: "the real answer", isCorrect: true },
+        { answer: "the unreal answer", isCorrect: false },
       ],          // answers array
     },            // question object ];               // question array
 ];                //questionArray
+
+
+var globalVar = {};
+
 
 var game = {
   // --
   // Define the properties of the game here
   // --
-  wins: 0,
-  losses: 0,
-  counter: 0,
-  questionSecs: 7,
-  answerSecs: 5,
-  timeoutSecs: 6,
-  currentQuestion: 0,
-  isQuestion: true,
+  wins: 0,                    // holds number of correct guesses
+  losses: 0,                  // holds number of incorrect guesses
 
-  intervalId: null,
+  questionSecs: 7,            // time to allow for the user to answer a question
+  answerSecs: 5,              // value to use to display the results after a guess            
+  timeoutSecs: 7,             // actual timer variable
+  intervalId: null,           // timer handle for clearing delay
+
+  currentQuestion: 0,         // index into question array
+  quess: "",                  // the current user guess
+  rightAnswer: "",            // the current correct choice  
+  isQuestion: true,           // state variable to control whether we are asking a question or showing an answer
 
 
   // --
@@ -63,50 +59,76 @@ var game = {
   // --
   initialize: function() {
     // Function for initializing the game object.  Tasks to run when the game first starts up
+    // Initialize variables
     console.log("Initializing the Game");
     this.wins = 0;
     this.losses = 0;
-    this.counter = 0;
+    this.currentQuestion = 0;
     console.log(this.timeoutSecs);
     this.reset();    
   },
 
   reset: function() {
-    // Reset current game - tasks to perform after the user wins or loses
+    // Reset current game - tasks to perform after the user wins or loses a question
     console.log("Resetting the Game Properties");
     this.timeoutSecs = this.questionSecs;
     this.isQuestion = true;
-    this.showNextQuestion;
+    // Show first question
+    this.showQuestion();
 
     this.showData();
+    this.runTimer();
   },
 
-  showNextQuestion: function () {
-    // get next question and load it up
+  // Next Question please
+  showQuestion: function () {
+    // get question and load it up
     $("#question").html(questionArray[this.currentQuestion].question);
-    $("#answers").html(questionArray[this.currentQuestion].answers[0].answer1);
-    this.currentQuestion++;
+    //$("#answers").html(questionArray[this.currentQuestion].answers[0].answer1);
+    for (var i = 0; i < questionArray[this.currentQuestion].answers.length; i++) {
+      // Find the right answer and save it for later
+      if (questionArray[this.currentQuestion].answers[i].isCorrect) {
+
+        console.log("questionArray[this.currentQuestion].answers[i].isCorrect: ", questionArray[this.currentQuestion].answers[i].isCorrect);
+        console.log("questionArray[this.currentQuestion].answers[i].answer: ", questionArray[this.currentQuestion].answers[i].answer);
+
+        this.rightAnswer = questionArray[this.currentQuestion].answers[i].answer;
+      }
+      // now display the answers for the user
+      this.showAnswer(questionArray[this.currentQuestion].answers[i]);
+    }
   },
 
-  processMove: function(move) {
-    console.log("Processing Move");
-    console.log("Move: ", move);
+  // Show an answer
+  showAnswer: function (a) {
+    console.log("a: ", a);
+    console.log("a.answer: ", a.answer);
+    // show the answer
+    $("<button>") .html(a.answer)
+                  .attr("whichButton", a.answer)
+                  .addClass("btn btn-primary")
+                  .attr("value", a.isCorrect)
+                  .appendTo("#answers")
+                  .on("click", function () {
 
-    // process the user move and check for the end of game
+        globalVal = $(this).attr("whichButton");
+        //alert("button: ", globalBVal;
 
-    // check if guess was correct, update correct and incorrect counters
-    // maybe check for end of game
-
-      //this.wins++;
-      alert("Congratulations: You WIN!!!");
-      //this.reset();
-    
-    
-      //alert("Sorry: You lose.");
-      //this.losses++;
-      //this.reset();
-
-    this.showData();
+                    if ( $(this).attr("value")=='true') {
+                      game.wins++;
+                      game.congrats();
+                    } else {
+                      game.losses++;
+                      // Could save the bad guess here to display
+                      game.sorry();
+                    }
+                    game.guess = $(this).attr("whichButton"); 
+        console.log("this: ", this);
+        console.log("this.value: ", this.value);
+        console.log($(this).attr("value"));
+        //console.log($(this).attr("whichButton"));
+        console.log(game.guess);
+                  });
   },
 
   showData: function() {
@@ -119,16 +141,12 @@ var game = {
     console.log("Run the timer.");
     console.log(this);
     this.stopTimer(); 
-    this.intervalId = setInterval(function () {
+    this.intervalId = setInterval (function () {
     game.decrement(); 
     }, 1000);
   },
 
-  // Next Question please
-
-
-
-  //  The decrement function.
+    //  The decrement function.
   decrement: function() {
     console.log("Tick");
 
@@ -136,29 +154,41 @@ var game = {
     this.timeoutSecs--;
     console.log(this.timeoutSecs);
     //  Show the number for seconds left
-    $("#time-left").html("<h2>" + this.timeoutSecs + "</h2>");
+    $("#time-left").html("<h3> Time Left: " + this.timeoutSecs + "</h3>");
     //  Once number hits zero...
     if (this.timeoutSecs === 0) {
       this.showData();
+      this.stopTimer();
+
+      //console.log("questionArrary.length: ", questionArray.length);
+      //console.log("questionArray[this.currentQuestion].answers.lenth: ", questionArray[this.currentQuestion].answers.length);
+
       // fiigure out what we are supposed to do 
       // if in questions, it timed out so add one wrong answer
-      // if just displaying a message, see if game is over and maybe show the next quesiton decide
+      // if just displaying a message, see if game is over and maybe show the next question decide
       if (this.isQuestion) {
-        isQuestion = false;
+        this.isQuestion = false;
         this.losses++;
-      } else {
+        this.timeOutSecs = this.answerSecs;
+        this.sorry();
+        } else {
         this.isQuestion = true;
+        this.timeOutSecs = this.questionSecs;
+        this.runTimer();
       }
-      // either way, show next question and see if game is over
+
+      // either way, see if game is over and show more questions if not
       // see if game is over
-      // show the next question
-      this.showNextQuestion();
-      
+      if (this.isQuestion && (this.currentQuestion < questionArray.length-1)) {
+        // show the next question
+        this.currentQuestion++;
+        this.showQuestion();
+        } else {
+      }
+     
       //  ...run the stop function.
       this.stopTimer();
       this.showData();
-      //  Alert the user that time is up.
-      alert("Time Up!");
     }
   },
 
@@ -167,31 +197,19 @@ var game = {
     clearInterval(this.intervalId);
   },
 
-};
+  congrats: function () {
+    $("#question").html("That's Right! The correct answer is: ");
+    $("#answers").html(this.rightAnswer);
+  },
 
-// Outside of game object... code is loading.. initialize game.
-var updateGameDisplay = function (game) {
-    console.log("Update Game Display");
+  sorry: function () {
+    $("#question").html("Sorry. The correct answer is: ")
+    $("#answers").html(this.rightAnswer);
+  },
 
-    $("#wins").html("Wins: " + game.wins);    
-    $("#losses").html("Losses: " + game.losses);
+}
 
-    game.showData();
-};
 
 
 game.initialize();
 
-
-// $(".crystal-image").on("click", function() {
-//   game.showData();
-//   var crystalValue = ($(this).attr("data-crystalvalue"));
-//   crystalValue = parseInt(crystalValue);
-
-//   // Call function on game object to update the game logic
-//   game.processMove(crystalValue);
-  
-//   // Call function (not on the game object) to update the page elements.  
-//   // Elements are updated from the properties of the game object
-//   updateGameDisplay(game); 
-// });
