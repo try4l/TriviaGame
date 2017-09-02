@@ -3,9 +3,6 @@
 }
 */
 body {
-/*  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 16px;
-  line-height: 16px;*/
   color: #777;
   background: url("../images/escheresque.png");
 }
@@ -21,5 +18,5 @@ body {
 /* general */
 .debug, 
 #user-text {
-/*  display: none; remove for debug */
+  display: none; /*remove for debug */
 }

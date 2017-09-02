@@ -1,4 +1,4 @@
- // buttons for test - make them invisible for production code
+ // buttons for test - they are invisible now for production code
  $(document).ready(function() {
     $("#button1").click(game.runTimer.bind(game));
     $("#button2").click(game.stopTimer.bind(game)); 
@@ -93,7 +93,7 @@
       answers: [ 
         { answer: "ears", isCorrect: false },
         { answer: "eyes", isCorrect: false },
-        { answer: "tongue", isCorrect: true },
+        { answer: "tongues", isCorrect: true },
         { answer: "skin", isCorrect: false },
       ],          // answers array
     },            // question object
@@ -142,8 +142,6 @@ var game = {
                               // 3 showing an answer display
                               // 4 game over - waiting for restart button (restart button does not reload the page)
                               // design note: this would probably be cleaner as an object map
-  nextState: 0,               // next state value - set at end of state logic for next pass
-  previousState: 0,           // previous state variable in case it is needed
 
 
   // --
@@ -153,7 +151,7 @@ var game = {
   initialize: function() {
     // Function for initializing the game object.  Things to do when the game first starts up
     console.log("Initializing the Game");
-    this.gameState = 1;
+    this.gameState = 0;
     this.wins = 0;
     this.losses = 0;
     this.currentQuestion = 0;
@@ -163,9 +161,6 @@ var game = {
                   .addClass("btn btn-primary")
                   .appendTo("#question")
                   .on("click", function () {
-        //console.log("this: ", this);
-        //console.log("this.value: ", this.value);
-        //console.log($(this).attr("value"));
                   game.reset();
                   });
     this.showData();    
@@ -174,10 +169,11 @@ var game = {
   reset: function() {
     // Reset current game
     console.log("Resetting the Game Properties");
+    this.wins = 0;
+    this.losses = 0;
     this.currentQuestion = 0;
     this.gameState = 1;
-    //this.timeoutSecs = this.questionSecs;
-    //this.isQuestion = true;
+
     // Show first question
     this.showQuestion();
     this.timeoutSecs = this.questionSecs;
@@ -191,7 +187,7 @@ var game = {
     this.gameState = 1;
     // get question and load it up
     $("#question").html(questionArray[this.currentQuestion].question);
-    //$("#answers").html(questionArray[this.currentQuestion].answers[0].answer1);
+
     $("#answers").html("");
     for (var i = 0; i < questionArray[this.currentQuestion].answers.length; i++) {
       // Find the right answer and save it for later
@@ -212,7 +208,6 @@ var game = {
     console.log("a: ", a);
     console.log("a.answer: ", a.answer);
     // show the answer
-    //this.gameState = 1;
     $("<button>") .html(a.answer)
                   .attr("whichButton", a.answer)
                   .addClass("btn btn-primary")
@@ -223,9 +218,6 @@ var game = {
                   game.stopTimer();
                   game.timeoutSecs = game.answerSecs;   // they guessed so we will show them the answer
 
-        globalVal = $(this).attr("whichButton");
-        //alert("button: ", globalBVal;
-
                     if ( $(this).attr("value")=='true') {
                       game.wins++;
                       game.congrats();
@@ -235,15 +227,10 @@ var game = {
                     }
                     // Save the guess here
                     game.guess = $(this).attr("whichButton"); 
-        //console.log("this: ", this);
-        //console.log("this.value: ", this.value);
-        //console.log($(this).attr("value"));
-        //console.log($(this).attr("whichButton"));
         console.log("Guess: ", game.guess);
+        game.timeoutSecs = game.answerSecs;   // we will be showing the answer
+        game.gameState = 3; 
                   });
-        //console.log("this: ", this);
-        //game.timeoutSecs = game.answerSecs;   // we will be showing the answer
-        //game.gameState = 3; 
         game.showData();
         game.runTimer();
   },
@@ -251,6 +238,8 @@ var game = {
   endGame: function() {
     // Function for finalizing the game object.  Things to do when the game ends
     console.log("Game Over");
+    $("#question").html("");
+    $("#answers").html("");
     $("<button>") .html("Start Over?")
                   .addClass("btn btn-primary")
                   .appendTo("#question")
@@ -258,7 +247,7 @@ var game = {
         console.log("this: ", this);
         console.log("this.value: ", this.value);
         console.log($(this).attr("value"));
-                  game.initialize();
+                  game.reset();
                   });
   },
 
@@ -295,8 +284,6 @@ var game = {
           //this.currentQuestion++;
           this.timeoutSecs = this.answerSecs;
           this.sorry();     // tell them what happened
-          //this.currentQuestion++;  // bump to next question
-          //this.showQuestion();
           this.runTimer();
           break;
         case 2:
@@ -306,7 +293,6 @@ var game = {
           this.gameState = 3;         // show the answer now
           this.timeoutSecs = this.answerSecs;
           this.sorry();     // tell them what happened
-          //this.currentQuestion++;  // bump to next question
           this.runTimer();
           break;
         case 3:
@@ -314,7 +300,7 @@ var game = {
           console.log("Timed Out Answer state");
           if (this.currentQuestion == questionArray.length-1) { // check for last question (game over)
             this.gameState = 4;       // time to leave
-            alert("Just timed out last question")
+            this.endGame();
           } else {
             this.timeoutSecs = this.questionSecs;
             this.gameState = 1;       // time to show next question
@@ -336,36 +322,10 @@ var game = {
           break;
       }
 
-      //this.gameState = this.nextState;
       console.log("this.gameState: ", this.gameState);
-      // if in questions, it timed out so add one wrong answer
-      // if just displaying a message, see if game is over and maybe show the next question decide
-      // if (this.isQuestion) {
-      //   this.isQuestion = false;
-      //   this.losses++;
-      //   this.timeoutSecs = this.answerSecs;
-      //   this.sorry();
-      //   } else {
-      //   this.isQuestion = true;
-      //   this.timeoutSecs = this.questionSecs;
-      //   this.runTimer();
-      // }
-
-      // either way, see if game is over and show more questions if not
-      // see if game is over
       console.log("this.isQuestion ", this.isQuestion);
       console.log("this.currentQuestion ", this.currentQuestion);
-      // if (this.isQuestion && (this.currentQuestion < questionArray.length-1)) {
-      //   // show the next question
-      //   this.currentQuestion++;
-      //   this.showQuestion();
-      //   } else {
-      //     //console.log("Game Over");
-      //     //alert("Game Over");
-      // }
-     
-      //  ...run the stop function.
-      //this.stopTimer();
+
       this.showData();
     }
   },
@@ -390,7 +350,7 @@ var game = {
   congrats: function () {
     $("#question").html("That's Right! The correct answer is: ");
     $("#answers").empty().html(this.rightAnswer);
-    //game.currentQuestion++;
+
     game.timeoutSecs = game.answerSecs;   // someone guessed - we will show the answer
     game.showData();
     game.runTimer();
@@ -399,7 +359,7 @@ var game = {
   sorry: function () {
     $("#question").empty().html("Sorry. The correct answer is: ")
     $("#answers").empty().html(this.rightAnswer);
-    //game.currentQuestion++;
+
     game.timeoutSecs = game.answerSecs;   // timeout or bad guess - we will show the answer
     game.showData();
     game.runTimer();
